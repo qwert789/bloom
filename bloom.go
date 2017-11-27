@@ -6,25 +6,25 @@ import (
 )
 
 type BitSetProvider interface {
-	Set([]uint) error
-	Test([]uint) (bool, error)
+	Set([]int64) error
+	Test([]int64) (bool, error)
 }
 
 type BloomFilter struct {
-	m      uint
-	k      uint
+	m      int64
+	k      int64
 	bitSet BitSetProvider
 }
 
-func New(m uint, k uint, bitSet BitSetProvider) *BloomFilter {
+func New(m int64, k int64, bitSet BitSetProvider) *BloomFilter {
 	return &BloomFilter{m: m, k: k, bitSet: bitSet}
 }
 
-func EstimateParameters(n uint, p float64) (uint, uint) {
+func EstimateParameters(n int64, p float64) (int64, int64) {
 	m := math.Ceil(float64(n) * math.Log(p) / math.Log(1.0/math.Pow(2.0, math.Ln2)))
 	k := math.Ln2*m/float64(n) + 0.5
 
-	return uint(m), uint(k)
+	return int64(m), int64(k)
 }
 
 func (f *BloomFilter) Add(data []byte) error {
@@ -49,16 +49,16 @@ func (f *BloomFilter) Exists(data []byte) (bool, error) {
 	return true, nil
 }
 
-func (f *BloomFilter) getLocations(data []byte) []uint {
-	locations := make([]uint, f.k)
+func (f *BloomFilter) getLocations(data []byte) []int64 {
+	locations := make([]int64, f.k)
 	hasher := fnv.New64()
 	hasher.Write(data)
 	a := make([]byte, 1)
-	for i := uint(0); i < f.k; i++ {
+	for i := int64(0); i < f.k; i++ {
 		a[0] = byte(i)
 		hasher.Write(a)
 		hashValue := hasher.Sum64()
-		locations[i] = uint(hashValue % uint64(f.m))
+		locations[i] = int64(hashValue % uint64(f.m))
 	}
 	return locations
 }
