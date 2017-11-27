@@ -19,10 +19,10 @@ type Connection interface {
 type RedisBitSet struct {
 	keyPrefix   string
 	redisClient *redis.ClusterClient
-	m           uint
+	m           int64
 }
 
-func NewRedisBitSet(keyPrefix string, m uint, redisClient *redis.ClusterClient) *RedisBitSet {
+func NewRedisBitSet(keyPrefix string, m int64, redisClient *redis.ClusterClient) *RedisBitSet {
 	return &RedisBitSet{keyPrefix, redisClient, m}
 }
 
@@ -59,8 +59,8 @@ func (r *RedisBitSet) Test(offsets []int64) (bool, error) {
 }
 
 func (r *RedisBitSet) Expire(seconds int) error {
-	n := uint(0)
-	for n <= uint(r.m/redisMaxLength) {
+	n := int64(0)
+	for n <= int64(r.m/redisMaxLength) {
 		key := fmt.Sprintf("%s:%d", r.keyPrefix, n)
 		n = n + 1
 		resp := r.redisClient.Expire(key, time.Second*time.Duration(seconds))
@@ -74,9 +74,9 @@ func (r *RedisBitSet) Expire(seconds int) error {
 }
 
 func (r *RedisBitSet) Delete() error {
-	n := uint(0)
+	n := int64(0)
 	keys := make([]string, 0)
-	for n <= uint(r.m/redisMaxLength) {
+	for n <= int64(r.m/redisMaxLength) {
 		key := fmt.Sprintf("%s:%d", r.keyPrefix, n)
 		keys = append(keys, key)
 		n = n + 1
